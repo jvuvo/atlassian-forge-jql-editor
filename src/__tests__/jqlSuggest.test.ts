@@ -214,6 +214,46 @@ describe('parseValueSuggestionContext', () => {
       fieldValue: 'Op',
     });
   });
+
+  it('treats open IN ( as empty value prefix for project list', () => {
+    expect(parseValueSuggestionContext('project in (')).toEqual({
+      fieldName: 'project',
+      fieldValue: '',
+    });
+    expect(parseValueSuggestionContext('project in ( ')).toEqual({
+      fieldName: 'project',
+      fieldValue: '',
+    });
+    expect(parseValueSuggestionContext('project IN(')).toEqual({
+      fieldName: 'project',
+      fieldValue: '',
+    });
+  });
+
+  it('captures partial value inside an IN list', () => {
+    expect(parseValueSuggestionContext('project in (TD')).toEqual({
+      fieldName: 'project',
+      fieldValue: 'TD',
+    });
+    expect(parseValueSuggestionContext('project in (TDS, FO')).toEqual({
+      fieldName: 'project',
+      fieldValue: 'FO',
+    });
+  });
+
+  it('stays in value context after a list item and space', () => {
+    expect(parseValueSuggestionContext('project in (TDS, ')).toEqual({
+      fieldName: 'project',
+      fieldValue: '',
+    });
+  });
+});
+
+describe('parseSuggestContext list values', () => {
+  it('is value after project in (', () => {
+    expect(parseSuggestContext('project in (', CATALOG)).toBe('value');
+    expect(parseSuggestContext('project in (TD', CATALOG)).toBe('value');
+  });
 });
 
 describe('parseSuggestContext', () => {

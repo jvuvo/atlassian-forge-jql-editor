@@ -236,23 +236,49 @@ function applySuggestion(jql, suggestion, cursor, previousJql) {
         cursor: nextBefore.length,
     };
 }
+function isListOperator(operator) {
+    return /^(IN|NOT\s+IN)$/i.test(operator.trim());
+}
+/** True when caret is inside an unclosed `IN (` / `NOT IN (` list. */
+function isInsideOpenValueList(text, operator) {
+    if (!isListOperator(operator)) {
+        return false;
+    }
+    const listStart = text.match(new RegExp(`(?:^|[\\s(])[A-Za-z][\\w.]*\\s*(?:${OPERATOR_PATTERN})\\s*\\(`, 'i'));
+    if (!listStart || listStart.index == null) {
+        return false;
+    }
+    const fromList = text.slice(listStart.index + listStart[0].length - 1); // from '('
+    const close = fromList.indexOf(')');
+    return close < 0;
+}
 /**
  * Detect `field operator partialValue` ending at the caret for value suggestions.
+ * Supports list forms: `project in (`, `project in (TDS, FO`.
  */
 function parseValueSuggestionContext(jql, cursor, previousJql) {
     const before = textBeforeCursor(jql, cursor, previousJql);
     const text = before.trimEnd();
-    const match = text.match(new RegExp(`(?:^|[\\s(])([A-Za-z][\\w.]*)\\s*(${OPERATOR_PATTERN})\\s*"?([^"\\n]*)$`, 'i'));
+    // Optional `(` after IN/NOT IN, and prior list items (`A, B, `) before the partial.
+    const match = text.match(new RegExp(`(?:^|[\\s(])([A-Za-z][\\w.]*)\\s*(${OPERATOR_PATTERN})\\s*(?:\\(\\s*(?:[^\\)]*,\\s*)*)?"?([^,"\\n)]*)$`, 'i'));
     if (!match) {
         return null;
     }
-    const fieldValue = match[3] ?? '';
-    // Value then trailing space → next clause, not still editing the value.
+    const fieldName = match[1];
+    const operator = match[2] ?? '';
+    let fieldValue = match[3] ?? '';
+    const insideList = isInsideOpenValueList(text, operator);
+    // Value then trailing space → next clause, unless still inside `IN (...)`.
     if (/\s$/.test(before) && fieldValue.length > 0) {
-        return null;
+        if (insideList) {
+            fieldValue = '';
+        }
+        else {
+            return null;
+        }
     }
     return {
-        fieldName: match[1],
+        fieldName,
         fieldValue,
     };
 }

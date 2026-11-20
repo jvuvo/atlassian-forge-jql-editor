@@ -64,6 +64,7 @@ export declare function fieldSupportsAutocomplete(fieldName: string, catalog: Jq
 export declare function applySuggestion(jql: string, suggestion: string, cursor?: number | null, previousJql?: string): ApplySuggestionResult;
 /**
  * Detect `field operator partialValue` ending at the caret for value suggestions.
+ * Supports list forms: `project in (`, `project in (TDS, FO`.
  */
 export declare function parseValueSuggestionContext(jql: string, cursor?: number | null, previousJql?: string): {
     fieldName: string;
