@@ -1,8 +1,6 @@
 # atlassian-forge-jql-editor
 
-JQL autocomplete and parse helpers for **Atlassian Forge UI Kit** apps. Uses `@forge/bridge` `requestJira` against Jira Cloud’s [JQL REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-jql/#api-group-jql).
-
-This is not a Custom UI / `@atlassianlabs/jql-editor-forge` wrapper. It powers a TextArea + suggestion popup (or similar) you build with Forge UI Kit.
+Forge **UI Kit** JQL field with as-you-type suggestions and live validation. Uses `@forge/bridge` `requestJira` against Jira Cloud’s [JQL REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-jql/#api-group-jql).
 
 ## Install
 
@@ -12,47 +10,67 @@ npm install atlassian-forge-jql-editor
 npm install git+ssh://git@github.com:jvuvo/atlassian-forge-jql-editor.git
 ```
 
-Peer dependency: `@forge/bridge` (already present in Forge apps).
+Peer dependencies: `@forge/bridge`, `@forge/react`, `react`.
 
-Requires Forge scope `read:jira-work` for autocomplete and parse.
+Requires Forge scope `read:jira-work`.
 
-## Usage
+## Quick start
 
-```ts
+```tsx
+import React, { useRef, useState } from 'react';
 import {
-  suggestJql,
-  parseJql,
-  applySuggestion,
-  parseSuggestContext,
+  ForgeJqlEditor,
+  type ForgeJqlEditorHandle,
 } from 'atlassian-forge-jql-editor';
 
-const suggestions = await suggestJql(jql, caretIndex, previousJql, {
-  projectKey: 'ABC', // optional — POST project-scoped autocompletedata
-});
+function MyForm() {
+  const [jql, setJql] = useState('');
+  const [isJqlValid, setIsJqlValid] = useState(true);
+  const jqlRef = useRef<ForgeJqlEditorHandle>(null);
 
-const applied = applySuggestion(jql, suggestions[0].value, caretIndex);
-const feedback = await parseJql(applied.jql);
+  return (
+    <>
+      <ForgeJqlEditor
+        ref={jqlRef}
+        value={jql}
+        onChange={setJql}
+        projectKey="ABC" // optional — scopes autocomplete
+        onValidityChange={({ isValid }) => setIsJqlValid(isValid)}
+      />
+      <button
+        type="button"
+        onClick={() => void jqlRef.current?.validate()}
+      >
+        Validate JQL
+      </button>
+    </>
+  );
+}
 ```
 
-### Suggestion contexts
+### Optional cloud validator
+
+```tsx
+<ForgeJqlEditor
+  value={jql}
+  onChange={setJql}
+  validateRequest={async (query) => invoke('testJql', { jql: query })}
+/>
+```
+
+## Suggestion contexts
 
 | Context | Example | Popup |
 |---------|---------|--------|
-| Field | `sta` | Matching fields (label = displayName, insert = value) |
-| Operator | `status ` | That field’s operators from `/jql/autocompletedata` |
-| Value | `status = Op` | `/jql/autocompletedata/suggestions` when `auto` |
+| Field | `sta` | Matching fields |
+| Operator | `status ` | That field’s operators |
+| Value | `status = Op` | Field values when `auto` |
 
-### Live validation
+## Low-level API
 
-```ts
-const { valid, errors, warnings } = await parseJql(jql);
-// POST /rest/api/3/jql/parse?validation=strict
-```
+Helpers are still exported for custom UIs:
 
-## API surface
-
-- **Pure helpers** (`jqlSuggest`): `applySuggestion`, `buildLocalJqlSuggestions`, `parseSuggestContext`, caret helpers, types
-- **Bridge client** (`jqlSuggestClient`): `suggestJql`, `parseJql`, `resetJqlAutocompleteCache`
+- `suggestJql`, `parseJql`, `applySuggestion`, `parseSuggestContext`, …
 
 ## Scripts
 

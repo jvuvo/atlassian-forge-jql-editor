@@ -30,3 +30,10 @@ export type {
 } from './jqlSuggest';
 
 export { parseJql, resetJqlAutocompleteCache, suggestJql } from './jqlSuggestClient';
+
+export { ForgeJqlEditor } from './ForgeJqlEditor';
+export type {
+  ForgeJqlEditorHandle,
+  ForgeJqlEditorProps,
+  ForgeJqlEditorValidity,
+} from './ForgeJqlEditor';

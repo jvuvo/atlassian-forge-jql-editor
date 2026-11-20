@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.suggestJql = exports.resetJqlAutocompleteCache = exports.parseJql = exports.textBeforeCursor = exports.setTextAreaCaret = exports.resolveInsertIndex = exports.rememberInsertIndex = exports.readSelectionStart = exports.parseValueSuggestionContext = exports.parseSuggestContext = exports.normalizeOperator = exports.MAX_JQL_SUGGESTIONS = exports.mapJqlParseQuery = exports.getTrailingToken = exports.findFieldMeta = exports.fieldSupportsAutocomplete = exports.EMPTY_JQL_CATALOG = exports.buildLocalJqlSuggestions = exports.applySuggestion = void 0;
+exports.ForgeJqlEditor = exports.suggestJql = exports.resetJqlAutocompleteCache = exports.parseJql = exports.textBeforeCursor = exports.setTextAreaCaret = exports.resolveInsertIndex = exports.rememberInsertIndex = exports.readSelectionStart = exports.parseValueSuggestionContext = exports.parseSuggestContext = exports.normalizeOperator = exports.MAX_JQL_SUGGESTIONS = exports.mapJqlParseQuery = exports.getTrailingToken = exports.findFieldMeta = exports.fieldSupportsAutocomplete = exports.EMPTY_JQL_CATALOG = exports.buildLocalJqlSuggestions = exports.applySuggestion = void 0;
 var jqlSuggest_1 = require("./jqlSuggest");
 Object.defineProperty(exports, "applySuggestion", { enumerable: true, get: function () { return jqlSuggest_1.applySuggestion; } });
 Object.defineProperty(exports, "buildLocalJqlSuggestions", { enumerable: true, get: function () { return jqlSuggest_1.buildLocalJqlSuggestions; } });
@@ -22,4 +22,6 @@ var jqlSuggestClient_1 = require("./jqlSuggestClient");
 Object.defineProperty(exports, "parseJql", { enumerable: true, get: function () { return jqlSuggestClient_1.parseJql; } });
 Object.defineProperty(exports, "resetJqlAutocompleteCache", { enumerable: true, get: function () { return jqlSuggestClient_1.resetJqlAutocompleteCache; } });
 Object.defineProperty(exports, "suggestJql", { enumerable: true, get: function () { return jqlSuggestClient_1.suggestJql; } });
+var ForgeJqlEditor_1 = require("./ForgeJqlEditor");
+Object.defineProperty(exports, "ForgeJqlEditor", { enumerable: true, get: function () { return ForgeJqlEditor_1.ForgeJqlEditor; } });
 //# sourceMappingURL=index.js.map

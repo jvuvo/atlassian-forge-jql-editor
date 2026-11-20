@@ -1,7 +1,7 @@
 {
   "name": "atlassian-forge-jql-editor",
-  "version": "0.1.0",
-  "description": "JQL autocomplete and parse helpers for Atlassian Forge UI Kit apps (requestJira)",
+  "version": "0.2.0",
+  "description": "Forge UI Kit JQL editor with autocomplete and parse helpers (requestJira)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,13 +33,18 @@
     "prepublishOnly": "npm run build && npm test"
   },
   "peerDependencies": {
-    "@forge/bridge": ">=2.0.0"
+    "@forge/bridge": ">=2.0.0",
+    "@forge/react": ">=10.0.0",
+    "react": ">=18.0.0"
   },
   "devDependencies": {
     "@forge/bridge": "^6.0.0",
+    "@forge/react": "^12.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.0",
+    "@types/react": "^18.3.30",
     "jest": "^30.4.2",
+    "react": "^18.2.0",
     "ts-jest": "^29.4.0",
     "typescript": "^5.9.0"
   },
@@ -48,6 +53,7 @@
     "forge",
     "jira",
     "jql",
-    "autocomplete"
+    "autocomplete",
+    "ui-kit"
   ]
 }
