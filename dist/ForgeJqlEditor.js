@@ -176,10 +176,11 @@ exports.ForgeJqlEditor = (0, react_2.forwardRef)(function ForgeJqlEditor({ value
             return;
         }
         const timer = setTimeout(() => {
-            if ((0, jqlSuggest_1.setTextAreaCaret)(caret, { id, name })) {
-                pendingCaretRef.current = null;
-                insertIndexRef.current = caret;
-            }
+            // Best-effort caret restore; always clear pending so typing is never blocked
+            // when Forge UI Kit cannot setSelectionRange.
+            (0, jqlSuggest_1.setTextAreaCaret)(caret, { id, name });
+            insertIndexRef.current = caret;
+            pendingCaretRef.current = null;
         }, 0);
         return () => clearTimeout(timer);
     }, [value, fieldEpoch, id, name]);
@@ -256,31 +257,24 @@ exports.ForgeJqlEditor = (0, react_2.forwardRef)(function ForgeJqlEditor({ value
         clearSuggestions();
         requestLiveParse(applied.jql);
         void runValidate(true, applied.jql);
+        // Ignore remount/focus noise briefly; always unlock so the user can type again.
         setTimeout(() => {
             applyingSuggestionRef.current = false;
-        }, 0);
+            pendingCaretRef.current = null;
+            insertIndexRef.current = applied.cursor;
+        }, 50);
     };
     const editor = (react_2.default.createElement(react_1.Popup, { isOpen: isSuggestOpen, onClose: () => clearSuggestions(), placement: "bottom-start", shouldFitContainer: true, autoFocus: false, role: "menu", label: "JQL suggestions", trigger: () => (react_2.default.createElement(react_1.TextArea, { key: `${id}-${fieldEpoch}`, id: id, name: name, value: value, isMonospaced: true, minimumRows: minimumRows, resize: "vertical", placeholder: placeholder, isDisabled: isDisabled, isInvalid: Boolean(error), onBlur: () => {
                 void runValidate(true);
             }, onChange: (event) => {
                 const val = String(event.target?.value ?? '');
+                // Only ignore the brief remount window after picking a suggestion.
                 if (applyingSuggestionRef.current) {
-                    return;
-                }
-                if (pendingCaretRef.current != null &&
-                    val !== previousValueRef.current &&
-                    previousValueRef.current.length > 0) {
                     return;
                 }
                 const previousJql = previousValueRef.current;
                 const reportedCaret = (0, jqlSuggest_1.readSelectionStart)(event.target);
-                const pendingCaret = pendingCaretRef.current;
-                const insertIndex = pendingCaret != null
-                    ? pendingCaret
-                    : (0, jqlSuggest_1.rememberInsertIndex)(val, reportedCaret, previousJql);
-                if (pendingCaret != null && val === previousValueRef.current) {
-                    pendingCaretRef.current = null;
-                }
+                const insertIndex = (0, jqlSuggest_1.rememberInsertIndex)(val, reportedCaret, previousJql);
                 insertIndexRef.current = insertIndex;
                 previousValueRef.current = val;
                 onChange(val);
