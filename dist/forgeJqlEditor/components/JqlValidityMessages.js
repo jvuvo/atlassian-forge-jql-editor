@@ -6,14 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JqlValidityMessages = JqlValidityMessages;
 const react_1 = require("@forge/react");
 const react_2 = __importDefault(require("react"));
-function JqlValidityMessages({ value, error, warning, isValid, validating, }) {
-    return (react_2.default.createElement(react_2.default.Fragment, null,
-        validating && (react_2.default.createElement(react_1.HelperMessage, null,
-            react_2.default.createElement(react_1.Inline, { space: "space.050", alignBlock: "center" },
-                react_2.default.createElement(react_1.Spinner, { size: "small", label: "Validating JQL..." }),
-                react_2.default.createElement(react_1.Text, { size: "small", color: "color.text.subtlest" }, "Validating JQL...")))),
-        error && react_2.default.createElement(react_1.ErrorMessage, null, error),
-        !error && warning && react_2.default.createElement(react_1.HelperMessage, null, warning),
-        isValid && !error && value.trim() !== '' && react_2.default.createElement(react_1.ValidMessage, null, "JQL is valid.")));
+/** Compact status affordance — icons only, no Jira parse text. */
+function JqlValidityMessages({ value, error, isValid, validating, }) {
+    const hasValue = value.trim() !== '';
+    if (validating) {
+        return react_2.default.createElement(react_1.Spinner, { size: "small", label: "Validating JQL" });
+    }
+    if (error) {
+        return (react_2.default.createElement(react_1.Inline, { space: "space.050", alignBlock: "center" },
+            react_2.default.createElement(react_1.Icon, { glyph: "error", label: "Invalid JQL", color: "color.icon.danger", size: "small" })));
+    }
+    if (isValid && hasValue) {
+        return (react_2.default.createElement(react_1.Inline, { space: "space.050", alignBlock: "center" },
+            react_2.default.createElement(react_1.Icon, { glyph: "check-circle", label: "Valid JQL", color: "color.icon.success", size: "small" })));
+    }
+    return null;
 }
 //# sourceMappingURL=JqlValidityMessages.js.map

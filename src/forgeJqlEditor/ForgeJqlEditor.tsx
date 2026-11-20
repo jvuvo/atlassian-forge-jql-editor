@@ -37,7 +37,6 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
   ) {
     const {
       error,
-      warning,
       isValid,
       validating,
       suggestions,
@@ -87,7 +86,6 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
         <JqlValidityMessages
           value={value}
           error={error}
-          warning={warning}
           isValid={isValid}
           validating={validating}
         />

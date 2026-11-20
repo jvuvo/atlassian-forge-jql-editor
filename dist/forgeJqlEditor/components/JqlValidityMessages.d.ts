@@ -2,10 +2,10 @@ import React from 'react';
 type JqlValidityMessagesProps = {
     value: string;
     error: string | null;
-    warning: string | null;
     isValid: boolean;
     validating: boolean;
 };
-export declare function JqlValidityMessages({ value, error, warning, isValid, validating, }: JqlValidityMessagesProps): React.JSX.Element;
+/** Compact status affordance — icons only, no Jira parse text. */
+export declare function JqlValidityMessages({ value, error, isValid, validating, }: JqlValidityMessagesProps): React.JSX.Element | null;
 export {};
 //# sourceMappingURL=JqlValidityMessages.d.ts.map

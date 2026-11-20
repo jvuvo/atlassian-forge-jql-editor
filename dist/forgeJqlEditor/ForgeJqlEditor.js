@@ -46,7 +46,7 @@ const useForgeJqlEditor_1 = require("./useForgeJqlEditor");
  * Users type the query themselves — the popup is not selectable.
  */
 exports.ForgeJqlEditor = (0, react_2.forwardRef)(function ForgeJqlEditor({ value, onChange, projectKey, id = 'forge-jql-editor', name = 'jql', label = constants_1.DEFAULT_LABEL, description = constants_1.DEFAULT_DESCRIPTION, learnMoreHref = constants_1.DEFAULT_LEARN_MORE, placeholder = constants_1.DEFAULT_PLACEHOLDER, minimumRows = 3, isDisabled = false, onValidityChange, validateRequest, }, ref) {
-    const { error, warning, isValid, validating, suggestions, isSuggestOpen, clearSuggestions, handleChange, handleBlur, runValidate, } = (0, useForgeJqlEditor_1.useForgeJqlEditor)({
+    const { error, isValid, validating, suggestions, isSuggestOpen, clearSuggestions, handleChange, handleBlur, runValidate, } = (0, useForgeJqlEditor_1.useForgeJqlEditor)({
         value,
         onChange,
         projectKey,
@@ -59,6 +59,6 @@ exports.ForgeJqlEditor = (0, react_2.forwardRef)(function ForgeJqlEditor({ value
     return (react_2.default.createElement(react_1.Stack, { space: "space.100" },
         react_2.default.createElement(JqlEditorHeader_1.JqlEditorHeader, { id: id, label: label, description: description, learnMoreHref: learnMoreHref }),
         react_2.default.createElement(JqlEditorField_1.JqlEditorField, { id: id, name: name, value: value, placeholder: placeholder, minimumRows: minimumRows, isDisabled: isDisabled, isInvalid: Boolean(error), isSuggestOpen: isSuggestOpen, suggestions: suggestions, onCloseSuggestions: clearSuggestions, onBlur: handleBlur, onChange: handleChange }),
-        react_2.default.createElement(JqlValidityMessages_1.JqlValidityMessages, { value: value, error: error, warning: warning, isValid: isValid, validating: validating })));
+        react_2.default.createElement(JqlValidityMessages_1.JqlValidityMessages, { value: value, error: error, isValid: isValid, validating: validating })));
 });
 //# sourceMappingURL=ForgeJqlEditor.js.map

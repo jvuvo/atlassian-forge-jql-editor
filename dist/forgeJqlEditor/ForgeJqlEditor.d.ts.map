@@ -1,1 +1,1 @@
-{"version":3,"file":"ForgeJqlEditor.d.ts","sourceRoot":"","sources":["../../src/forgeJqlEditor/ForgeJqlEditor.tsx"],"names":[],"mappings":"AACA,OAAO,KAA0C,MAAM,OAAO,CAAC;AAU/D,OAAO,KAAK,EAAE,oBAAoB,EAAE,mBAAmB,EAAE,MAAM,SAAS,CAAC;AAGzE;;;GAGG;AACH,eAAO,MAAM,cAAc,kGA8E1B,CAAC"}
+{"version":3,"file":"ForgeJqlEditor.d.ts","sourceRoot":"","sources":["../../src/forgeJqlEditor/ForgeJqlEditor.tsx"],"names":[],"mappings":"AACA,OAAO,KAA0C,MAAM,OAAO,CAAC;AAU/D,OAAO,KAAK,EAAE,oBAAoB,EAAE,mBAAmB,EAAE,MAAM,SAAS,CAAC;AAGzE;;;GAGG;AACH,eAAO,MAAM,cAAc,kGA4E1B,CAAC"}
