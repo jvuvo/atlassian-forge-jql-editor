@@ -4,6 +4,8 @@ Forge **UI Kit** JQL field with as-you-type **hint** suggestions (read-only popu
 
 The popup is display-only — users type completions themselves. Hints update from the caret position (field → operator → value).
 
+![Forge JQL editor suggesting label values after `labels in (`](docs/forge-jql-editor-suggestions.png)
+
 ## Install
 
 ```bash
