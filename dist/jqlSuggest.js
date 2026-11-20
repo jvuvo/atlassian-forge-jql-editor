@@ -66,6 +66,10 @@ function resolveInsertIndex(jql, reportedCursor, previousJql) {
     if (clamped === 0 && previousJql == null) {
         return end;
     }
+    // Popup/blur often reports caret 0 while the value did not change (suggestion click).
+    if (clamped === 0 && end > 0 && previousJql != null && text === previousJql) {
+        return end;
+    }
     return clamped;
 }
 /** Text before the insert index (defaults to full string when caret is omitted/untrusted). */
@@ -152,8 +156,9 @@ function fieldNameBeforeOperator(jql, cursor, previousJql) {
 }
 const JQL_CLAUSE_OPS = new Set(FALLBACK_OPERATORS.map((op) => op.toUpperCase()).concat(['AND', 'OR', 'ORDER BY']));
 function formatJqlValue(value, alreadyInQuotes) {
+    // Head already contains the opening quote when alreadyInQuotes is true.
     if (alreadyInQuotes) {
-        return `"${value}"`;
+        return `${value.replace(/"/g, '\\"')}"`;
     }
     if (/^[A-Za-z0-9_]+$/.test(value)) {
         return value;
@@ -164,26 +169,51 @@ function isClauseOperatorOrKeyword(value) {
     return JQL_CLAUSE_OPS.has(value.trim().toUpperCase());
 }
 /**
+ * Last `field <op> ["?]` ending at `before`, so multi-clause JQL replaces the
+ * current value — not the first `field =` in the string.
+ */
+function findValueClauseHead(before) {
+    const re = new RegExp(`(?:^|[\\s(])([A-Za-z][\\w.]*)\\s*(${OPERATOR_PATTERN})\\s*("?)`, 'gi');
+    let last = null;
+    let match;
+    while ((match = re.exec(before)) !== null) {
+        last = match;
+        if (match[0].length === 0) {
+            re.lastIndex += 1;
+        }
+    }
+    if (!last || last.index == null) {
+        return null;
+    }
+    const headEnd = last.index + last[0].length;
+    const remainder = before.slice(headEnd);
+    // Remainder must be an in-progress value (no new clause keywords).
+    if (/\b(?:AND|OR|ORDER)\b/i.test(remainder)) {
+        return null;
+    }
+    return {
+        head: before.slice(0, headEnd),
+        openQuote: last[3] === '"',
+    };
+}
+/**
  * Insert at a resolved index (caret when trusted, else end of TextArea value).
  * After `field <op>`, values are always placed after the operator.
  */
 function applySuggestion(jql, suggestion, cursor, previousJql) {
     const text = jql ?? '';
     const value = suggestion.trimEnd();
-    // Caller usually passes an already-resolved index; only re-resolve when missing.
-    const insertAt = cursor != null && !Number.isNaN(cursor)
-        ? Math.max(0, Math.min(cursor, text.length))
-        : resolveInsertIndex(text, null, previousJql);
+    // Always resolve — raw selectionStart 0 from popup/blur must not win.
+    const insertAt = resolveInsertIndex(text, cursor, previousJql);
     if (!value) {
         return { jql: text, cursor: insertAt };
     }
     const before = text.slice(0, insertAt);
     const after = text.slice(insertAt);
-    // field <operator> [partial] → put the value after the operator (replace partial).
-    const valuePosition = before.match(/^(.*?[A-Za-z][\w.]*\s*(?:=|!=|~|!~|IN|NOT\s+IN|IS|IS\s+NOT|>|>=|<|<=)\s*)("?)([^"]*)$/i);
+    // field <operator> [partial] → put the value after the *last* operator (replace partial).
+    const valuePosition = findValueClauseHead(before);
     if (valuePosition && !isClauseOperatorOrKeyword(value)) {
-        const head = valuePosition[1];
-        const openQuote = valuePosition[2] === '"';
+        const { head, openQuote } = valuePosition;
         const rendered = formatJqlValue(value, openQuote);
         const spacer = !openQuote && !/\s$/.test(head) ? ' ' : '';
         const nextBefore = `${head}${spacer}${rendered} `;

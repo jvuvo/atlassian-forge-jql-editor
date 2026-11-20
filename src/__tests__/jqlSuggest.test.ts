@@ -161,6 +161,22 @@ describe('applySuggestion', () => {
     });
   });
 
+  it('replaces the last clause value, not the first field = in the query', () => {
+    expect(
+      applySuggestion('project = TDS AND status = Op', 'Open', 'project = TDS AND status = Op'.length)
+    ).toEqual({
+      jql: 'project = TDS AND status = Open ',
+      cursor: 'project = TDS AND status = Open '.length,
+    });
+  });
+
+  it('treats caret 0 from popup/blur as end when the value did not change', () => {
+    expect(applySuggestion('status = ', 'Open', 0, 'status = ')).toEqual({
+      jql: 'status = Open ',
+      cursor: 'status = Open '.length,
+    });
+  });
+
   it('quotes multi-word values after the operator', () => {
     expect(applySuggestion('status = ', 'In Progress', 'status = '.length)).toEqual({
       jql: 'status = "In Progress" ',
