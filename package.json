@@ -1,0 +1,52 @@
+{
+  "name": "atlassian-forge-jql-editor",
+  "version": "0.1.0",
+  "description": "JQL autocomplete and parse helpers for Atlassian Forge UI Kit apps (requestJira)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:jvuvo/atlassian-forge-jql-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jvuvo/atlassian-forge-jql-editor/issues"
+  },
+  "homepage": "https://github.com/jvuvo/atlassian-forge-jql-editor#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "peerDependencies": {
+    "@forge/bridge": ">=2.0.0"
+  },
+  "devDependencies": {
+    "@forge/bridge": "^6.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.9.0"
+  },
+  "keywords": [
+    "atlassian",
+    "forge",
+    "jira",
+    "jql",
+    "autocomplete"
+  ]
+}
