@@ -1,11 +1,11 @@
 {
   "name": "atlassian-forge-jql-editor",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Forge UI Kit JQL editor with autocomplete and parse helpers (requestJira)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:jvuvo/atlassian-forge-jql-editor.git"
+    "url": "git+ssh://git@github.com/jvuvo/atlassian-forge-jql-editor.git"
   },
   "bugs": {
     "url": "https://github.com/jvuvo/atlassian-forge-jql-editor/issues"
