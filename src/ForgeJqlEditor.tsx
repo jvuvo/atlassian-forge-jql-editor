@@ -6,7 +6,6 @@ import {
   Label,
   Link,
   Popup,
-  Pressable,
   Spinner,
   Stack,
   Text,
@@ -22,26 +21,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  applySuggestion,
-  readSelectionStart,
-  rememberInsertIndex,
-  setTextAreaCaret,
-  type JqlSuggestion,
-} from './jqlSuggest';
+import { readSelectionStart, rememberInsertIndex, type JqlSuggestion } from './jqlSuggest';
 import { parseJql, suggestJql } from './jqlSuggestClient';
 
 const suggestionPopupStyles = xcss({
   paddingBlock: 'space.050',
-  paddingInline: 'space.050',
+  paddingInline: 'space.100',
   maxWidth: '100%',
 });
 
 const suggestionItemStyles = xcss({
   width: '100%',
   textAlign: 'start',
-  paddingBlock: 'space.075',
-  paddingInline: 'space.100',
+  paddingBlock: 'space.050',
 });
 
 const SUGGEST_DEBOUNCE_MS = 300;
@@ -95,7 +87,8 @@ function normalizeProjectKey(projectKey?: string | null): string | null {
 }
 
 /**
- * Forge UI Kit JQL field with as-you-type suggestions and live parse feedback.
+ * Forge UI Kit JQL field with read-only suggestion hints (by caret) and live parse.
+ * Users type the query themselves — the popup is not selectable.
  */
 export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorProps>(
   function ForgeJqlEditor(
@@ -106,7 +99,7 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
       id = 'forge-jql-editor',
       name = 'jql',
       label = 'JQL filter (optional)',
-      description = 'Filter issues with JQL. Leave empty for all issues. Suggestions appear while you type.',
+      description = 'Filter issues with JQL. Leave empty for all issues. Hints appear while you type — type the value yourself.',
       learnMoreHref = DEFAULT_LEARN_MORE,
       placeholder = 'e.g. project = "JS" AND status = Open',
       minimumRows = 3,
@@ -123,31 +116,24 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
     const [validating, setValidating] = useState(false);
     const [suggestions, setSuggestions] = useState<JqlSuggestion[]>([]);
     const [isSuggestOpen, setIsSuggestOpen] = useState(false);
-    const [fieldEpoch, setFieldEpoch] = useState(0);
 
     const suggestTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const parseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const suggestRequestIdRef = useRef(0);
     const parseRequestIdRef = useRef(0);
-    const insertIndexRef = useRef<number | null>(null);
     const previousValueRef = useRef(value);
-    const applyingSuggestionRef = useRef(false);
-    const pendingCaretRef = useRef<number | null>(null);
     const valueRef = useRef(value);
     const onValidityChangeRef = useRef(onValidityChange);
 
     valueRef.current = value;
     onValidityChangeRef.current = onValidityChange;
 
-    const publishValidity = useCallback(
-      (next: ForgeJqlEditorValidity) => {
-        setError(next.error);
-        setWarning(next.warning);
-        setIsValid(next.isValid);
-        onValidityChangeRef.current?.(next);
-      },
-      []
-    );
+    const publishValidity = useCallback((next: ForgeJqlEditorValidity) => {
+      setError(next.error);
+      setWarning(next.warning);
+      setIsValid(next.isValid);
+      onValidityChangeRef.current?.(next);
+    }, []);
 
     const clearSuggestions = useCallback(() => {
       setSuggestions([]);
@@ -240,21 +226,6 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
       previousValueRef.current = value;
     }, []);
 
-    useEffect(() => {
-      const caret = pendingCaretRef.current;
-      if (caret == null) {
-        return;
-      }
-      const timer = setTimeout(() => {
-        // Best-effort caret restore; always clear pending so typing is never blocked
-        // when Forge UI Kit cannot setSelectionRange.
-        setTextAreaCaret(caret, { id, name });
-        insertIndexRef.current = caret;
-        pendingCaretRef.current = null;
-      }, 0);
-      return () => clearTimeout(timer);
-    }, [value, fieldEpoch, id, name]);
-
     const runValidate = useCallback(
       async (quiet = false, jqlOverride?: string): Promise<boolean> => {
         const jqlToValidate = jqlOverride ?? valueRef.current;
@@ -322,90 +293,6 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
       [runValidate]
     );
 
-    const handleApplySuggestion = (suggestion: JqlSuggestion) => {
-      const currentJql = valueRef.current;
-      const previousJql = previousValueRef.current || currentJql;
-      const insertIndex = rememberInsertIndex(currentJql, insertIndexRef.current, previousJql);
-      const applied = applySuggestion(currentJql, suggestion.value, insertIndex, previousJql);
-
-      insertIndexRef.current = applied.cursor;
-      previousValueRef.current = applied.jql;
-      pendingCaretRef.current = applied.cursor;
-      applyingSuggestionRef.current = true;
-      onChange(applied.jql);
-      setFieldEpoch((epoch) => epoch + 1);
-      publishValidity({ isValid: false, error: null, warning: null });
-      clearSuggestions();
-      requestLiveParse(applied.jql);
-      void runValidate(true, applied.jql);
-      // Ignore remount/focus noise briefly; always unlock so the user can type again.
-      setTimeout(() => {
-        applyingSuggestionRef.current = false;
-        pendingCaretRef.current = null;
-        insertIndexRef.current = applied.cursor;
-      }, 50);
-    };
-
-    const editor = (
-      <Popup
-        isOpen={isSuggestOpen}
-        onClose={() => clearSuggestions()}
-        placement="bottom-start"
-        shouldFitContainer
-        autoFocus={false}
-        role="menu"
-        label="JQL suggestions"
-        trigger={() => (
-          <TextArea
-            key={`${id}-${fieldEpoch}`}
-            id={id}
-            name={name}
-            value={value}
-            isMonospaced
-            minimumRows={minimumRows}
-            resize="vertical"
-            placeholder={placeholder}
-            isDisabled={isDisabled}
-            isInvalid={Boolean(error)}
-            onBlur={() => {
-              void runValidate(true);
-            }}
-            onChange={(event) => {
-              const val = String(event.target?.value ?? '');
-              // Only ignore the brief remount window after picking a suggestion.
-              if (applyingSuggestionRef.current) {
-                return;
-              }
-              const previousJql = previousValueRef.current;
-              const reportedCaret = readSelectionStart(event.target);
-              const insertIndex = rememberInsertIndex(val, reportedCaret, previousJql);
-              insertIndexRef.current = insertIndex;
-              previousValueRef.current = val;
-              onChange(val);
-              publishValidity({ isValid: false, error: null, warning: null });
-              requestSuggestions(val, insertIndex, previousJql);
-              requestLiveParse(val);
-            }}
-          />
-        )}
-        content={() => (
-          <Box xcss={suggestionPopupStyles}>
-            <Stack space="space.0" alignInline="start">
-              {suggestions.map((suggestion) => (
-                <Pressable
-                  key={`${suggestion.value}-${suggestion.label}`}
-                  xcss={suggestionItemStyles}
-                  onClick={() => handleApplySuggestion(suggestion)}
-                >
-                  <Text align="start">{suggestion.label}</Text>
-                </Pressable>
-              ))}
-            </Stack>
-          </Box>
-        )}
-      />
-    );
-
     return (
       <Stack space="space.100">
         {label ? <Label labelFor={id}>{label}</Label> : null}
@@ -419,7 +306,58 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
             ) : null}
           </Stack>
         )}
-        {editor}
+        <Popup
+          isOpen={isSuggestOpen}
+          onClose={() => clearSuggestions()}
+          placement="bottom-start"
+          shouldFitContainer
+          autoFocus={false}
+          role="listbox"
+          label="JQL suggestions"
+          trigger={() => (
+            <TextArea
+              id={id}
+              name={name}
+              value={value}
+              isMonospaced
+              minimumRows={minimumRows}
+              resize="vertical"
+              placeholder={placeholder}
+              isDisabled={isDisabled}
+              isInvalid={Boolean(error)}
+              onBlur={() => {
+                void runValidate(true);
+              }}
+              onChange={(event) => {
+                const val = String(event.target?.value ?? '');
+                const previousJql = previousValueRef.current;
+                const reportedCaret = readSelectionStart(event.target);
+                const insertIndex = rememberInsertIndex(val, reportedCaret, previousJql);
+                previousValueRef.current = val;
+                onChange(val);
+                publishValidity({ isValid: false, error: null, warning: null });
+                requestSuggestions(val, insertIndex, previousJql);
+                requestLiveParse(val);
+              }}
+            />
+          )}
+          content={() => (
+            <Box xcss={suggestionPopupStyles}>
+              <Stack space="space.050" alignInline="start">
+                <Text size="small" color="color.text.subtlest">
+                  Suggestions (type to complete)
+                </Text>
+                {suggestions.map((suggestion) => (
+                  <Box key={`${suggestion.value}-${suggestion.label}`} xcss={suggestionItemStyles}>
+                    <Text align="start" size="small">
+                      {suggestion.label}
+                    </Text>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          )}
+        />
         {validating && (
           <HelperMessage>
             <Inline space="space.050" alignBlock="center">
@@ -432,9 +370,7 @@ export const ForgeJqlEditor = forwardRef<ForgeJqlEditorHandle, ForgeJqlEditorPro
         )}
         {error && <ErrorMessage>{error}</ErrorMessage>}
         {!error && warning && <HelperMessage>{warning}</HelperMessage>}
-        {isValid && !error && value.trim() !== '' && (
-          <ValidMessage>JQL is valid.</ValidMessage>
-        )}
+        {isValid && !error && value.trim() !== '' && <ValidMessage>JQL is valid.</ValidMessage>}
       </Stack>
     );
   }

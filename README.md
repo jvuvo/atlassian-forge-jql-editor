@@ -1,6 +1,8 @@
 # atlassian-forge-jql-editor
 
-Forge **UI Kit** JQL field with as-you-type suggestions and live validation. Uses `@forge/bridge` `requestJira` against Jira Cloud’s [JQL REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-jql/#api-group-jql).
+Forge **UI Kit** JQL field with as-you-type **hint** suggestions (read-only popup) and live validation. Uses `@forge/bridge` `requestJira` against Jira Cloud’s [JQL REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-jql/#api-group-jql).
+
+The popup is display-only — users type completions themselves. Hints update from the caret position (field → operator → value).
 
 ## Install
 
@@ -58,10 +60,10 @@ function MyForm() {
 />
 ```
 
-## Suggestion contexts
+## Suggestion hints (not clickable)
 
-| Context | Example | Popup |
-|---------|---------|--------|
+| Context | Example | Popup shows |
+|---------|---------|-------------|
 | Field | `sta` | Matching fields |
 | Operator | `status ` | That field’s operators |
 | Value | `status = Op` | Field values when `auto` |
